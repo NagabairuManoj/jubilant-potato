@@ -1,0 +1,24 @@
+          - ec2:
+                  region: {{ region }}
+                  image: {{ image_id }}
+                  instance_type: {{ instance_type }}
+                  count: 1
+                  vpc_subnet_id: {{ subnet_id }}
+                  group: {{ security_group }}
+                  key_name: {{ key_name }}
+                  instance_tags:
+                          Name: master
+                  state: present
+                  aws_access_key: {{ aws_access_key }}
+                  aws_secret_key: {{ aws_secret_key }}
+            register: y
+          - debug:
+                  msg: "instance created"
+          - blockinfile:
+                    path: {{ path_to_hostfile }}
+                    marker_begin: ""
+                    marker_end: ""
+                    marker: ""
+                    block: |
+                         [master]
+                         "{{ y['instances'][0]['private_ip'] }}" ansible_user=ec2-user ansible_private_key_file= {{ key_name }}

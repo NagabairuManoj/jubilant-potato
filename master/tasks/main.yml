@@ -1,0 +1,84 @@
+---
+# tasks file for master
+          - name: installing docker
+            yum:
+                    name:
+                            - docker
+                    state: present
+
+          - name: starting services
+            service:
+                    name: docker
+                    state: started
+                    enabled: yes
+          - name: installing docker package
+            pip:
+                    name: docker
+                    executable: pip3
+
+          - name: yum repo for k8s
+            yum_repository:
+                     name: kubernetes
+                     description: kubernetes
+                     baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+                     enabled: yes
+                     gpgcheck: yes
+                     repo_gpgcheck: yes
+                     gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+                     exclude: 
+                          - kubectl
+                          - kubelet
+                          - kubeadm
+          - name: installing k8s
+            yum:
+                    name:
+                          - kubelet
+                          - kubectl
+                          - kubeadm
+                    state: present
+                    disable_excludes: kubernetes
+          - name: starting kubelet service
+            service:
+                   name: kubelet
+                   state: started
+                   enabled: yes
+          - name: pulling images
+            command: "kubeadm config images pull"
+                    
+          - name: changing driver
+            copy:
+                   dest: /etc/docker/daemon.json
+                   content: |
+                           {
+                             "exec-opts": ["native.cgroupdriver=systemd"]
+                           }
+          - name: restarting docker service
+            service:
+                   name: docker
+                   state: restarted
+          - name: installing iproutetc
+            yum:
+                   name:
+                         - iproute-tc
+                   state: present
+          - name: initiating kubeadm
+            command: "kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem"
+          - name: creating token
+            shell: " kubeadm token create --print-join-command >> token.sh"
+          - name: fetching token
+            fetch:
+                   src: /home/ec2-user/token.sh
+                   dest: /tmp/token.sh
+                   flat: yes
+          - name: creating kctl.sh
+            copy:
+                   dest: /tmp/kctl.sh
+                   content: |
+                            mkdir -p $HOME/.kube
+                            sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+                            sudo chown $(id -u):$(id -g) $HOME/.kube/config
+          - name: running kctl.sh
+            shell: bash /tmp/kctl.sh
+          - name: applying flannel
+            command: "kubectl apply  -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml"
+

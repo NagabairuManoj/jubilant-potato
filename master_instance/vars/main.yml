@@ -1,0 +1,11 @@
+---
+# vars file for master_instance
+region: ap-south-1
+image_id: ami-0a23ccb2cdd9286bb
+instance_type: t2.micro
+subnet_id: subnet-6f837504
+security_group: launch-wizard-3
+key_name: aug
+aws_access_key: AKIAU527GKGKVYYT63WK
+aws_secret_key: 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
+path_to_hostfile: /root/ip.txt
