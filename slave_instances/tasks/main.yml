@@ -5,7 +5,7 @@
                   count: "{{ instance_count }}"
                   vpc_subnet_id: "{{ subnet_id }}"
                   group: "{{ security_group }}"
-                  key_name: "{{ key_name }}"
+                  key_name: "{{ key }}"
                   instance_tags:
                           Name: slave
                   state: present
