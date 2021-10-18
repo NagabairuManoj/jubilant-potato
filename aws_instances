@@ -1,0 +1,4 @@
+- hosts: localhost
+  roles:
+          - role: master_instance
+          - role: slave_instances
