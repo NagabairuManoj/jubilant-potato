@@ -1,4 +1,7 @@
 - hosts: master
+  become_method: sudo
+  become_user: root
+  become: true
   roles:
           - role: master
 
